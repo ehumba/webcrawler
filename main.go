@@ -22,4 +22,5 @@ func main() {
 	url := argsWithProg[1]
 
 	fmt.Printf("starting crawl of: %v\n", url)
+	fmt.Print(getHTML(url))
 }
