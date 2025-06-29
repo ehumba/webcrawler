@@ -22,5 +22,7 @@ func main() {
 	url := argsWithProg[1]
 
 	fmt.Printf("starting crawl of: %v\n", url)
-	fmt.Print(getHTML(url))
+	pages := make(map[string]int)
+	crawlPage(url, url, pages)
+	fmt.Print(pages)
 }
