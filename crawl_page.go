@@ -5,18 +5,13 @@ import (
 	"net/url"
 )
 
-func crawlPage(rawBaseURL, rawCurrentURL string, pages map[string]int) {
-	parsedBaseURL, err := url.Parse(rawBaseURL)
-	if err != nil {
-		fmt.Println("could not parse base url")
-		return
-	}
+func (cfg *config) crawlPage(rawCurrentURL string) {
 	parsedCurrentURL, err := url.Parse(rawCurrentURL)
 	if err != nil {
 		fmt.Println("could not parse current url")
 		return
 	}
-	if parsedBaseURL.Hostname() != parsedCurrentURL.Hostname() {
+	if cfg.baseURL.Hostname() != parsedCurrentURL.Hostname() {
 		return
 	}
 
@@ -26,8 +21,8 @@ func crawlPage(rawBaseURL, rawCurrentURL string, pages map[string]int) {
 		return
 	}
 
-	pages[currentNormalized] += 1
-	if pages[currentNormalized] > 1 {
+	// Check if a page was already visited and return if yes.
+	if cfg.addPageVisit(currentNormalized) == false {
 		return
 	}
 
@@ -38,14 +33,21 @@ func crawlPage(rawBaseURL, rawCurrentURL string, pages map[string]int) {
 	}
 	fmt.Print(html)
 
-	urls, err := getURLsFromHTML(html, rawBaseURL)
+	urls, err := getURLsFromHTML(html, cfg.baseURL)
 	if err != nil {
 		fmt.Printf("failed to fetch urls from html body: %v", err)
 		return
 	}
 
 	for _, url := range urls {
-		crawlPage(rawBaseURL, url, pages)
+		cfg.wg.Add(1)
+		go func(link string) {
+			cfg.concurrencyControl <- struct{}{}
+			defer cfg.wg.Done()
+			defer func() { <-cfg.concurrencyControl }() // release token
+			cfg.crawlPage(url)
+		}()
+
 	}
 
 }
