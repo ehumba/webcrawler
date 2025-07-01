@@ -6,6 +6,14 @@ import (
 )
 
 func (cfg *config) crawlPage(rawCurrentURL string) {
+	// check for maximum page number
+	cfg.mu.Lock()
+	if len(cfg.pages) >= cfg.maxPages {
+		fmt.Println("exceeded maximum page number")
+		return
+	}
+	cfg.mu.Unlock()
+
 	parsedCurrentURL, err := url.Parse(rawCurrentURL)
 	if err != nil {
 		fmt.Println("could not parse current url")
