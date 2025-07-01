@@ -11,6 +11,8 @@ func (cfg *config) crawlPage(rawCurrentURL string) {
 		fmt.Println("could not parse current url")
 		return
 	}
+
+	// Skip if it's a different domain
 	if cfg.baseURL.Hostname() != parsedCurrentURL.Hostname() {
 		return
 	}
@@ -22,7 +24,7 @@ func (cfg *config) crawlPage(rawCurrentURL string) {
 	}
 
 	// Check if a page was already visited and return if yes.
-	if cfg.addPageVisit(currentNormalized) == false {
+	if !cfg.addPageVisit(currentNormalized) {
 		return
 	}
 
@@ -31,7 +33,7 @@ func (cfg *config) crawlPage(rawCurrentURL string) {
 		fmt.Printf("failed to fetch html: %v", err)
 		return
 	}
-	fmt.Print(html)
+	fmt.Printf("Visited: %s\n", currentNormalized)
 
 	urls, err := getURLsFromHTML(html, cfg.baseURL)
 	if err != nil {
@@ -41,13 +43,12 @@ func (cfg *config) crawlPage(rawCurrentURL string) {
 
 	for _, url := range urls {
 		cfg.wg.Add(1)
-		go func(link string) {
+		url := url // create new local variable
+		go func() {
 			cfg.concurrencyControl <- struct{}{}
 			defer cfg.wg.Done()
 			defer func() { <-cfg.concurrencyControl }() // release token
 			cfg.crawlPage(url)
 		}()
-
 	}
-
 }

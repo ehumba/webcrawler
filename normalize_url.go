@@ -10,6 +10,8 @@ func normalizeURL(rawURL string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	parsedURL.Fragment = ""
+	parsedURL.RawQuery = ""
 	hostAndPath := parsedURL.Host + parsedURL.Path
 	normalized := strings.Trim(hostAndPath, "/")
 
