@@ -46,9 +46,7 @@ func main() {
 		maxPages:           maxPagesInput,
 	}
 
-	fmt.Printf("starting crawl of: %v\n", URLInput)
-
 	cfg.crawlPage(URLInput)
 	cfg.wg.Wait()
-	fmt.Println(cfg.pages)
+	printReport(cfg.pages, URLInput)
 }

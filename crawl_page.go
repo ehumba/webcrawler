@@ -31,8 +31,11 @@ func (cfg *config) crawlPage(rawCurrentURL string) {
 		return
 	}
 
-	// Check if a page was already visited and return if yes.
+	// Check if a page was already visited, increase counter and return if yes.
 	if !cfg.addPageVisit(currentNormalized) {
+		cfg.mu.Lock()
+		cfg.pages[currentNormalized] += 1
+		cfg.mu.Unlock()
 		return
 	}
 
